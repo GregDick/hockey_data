@@ -1,16 +1,17 @@
 package com.example.mercury.hockey_data;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -25,37 +26,57 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.teams)
     TextView teamsView;
+    private Unbinder unbinder;
+    private Disposable subscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        unbinder = ButterKnife.bind(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         fetchAndDisplayData();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (subscription != null){
+            subscription.dispose();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbinder.unbind();
     }
 
     private void fetchAndDisplayData() {
         Flowable<String> dataStream = Flowable.create(subscriber -> {
-
-            subscriber.onNext(fetchData());
+            String parsedData = parseData(fetchData());
+            subscriber.onNext(parsedData);
 
             subscriber.onComplete();
 
         }, BackpressureStrategy.BUFFER);
 
-        Disposable subscription = dataStream
+        subscription = dataStream
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(
-                this::displayData,
-                err -> Log.e("fetchAndDisplayData", "Subscriber received error: " + err.getLocalizedMessage()),
-                () -> Log.d("fetchAndDisplayData", "Subscriber got Completed event")
-        );
+                        MainActivity.this::displayData,
+                        err -> Log.e("fetchAndDisplayData", "Subscriber received error: " + err.getLocalizedMessage()),
+                        () -> Log.d("fetchAndDisplayData", "Subscriber got Completed event")
+                );
+    }
+
+    private String parseData(String rawJson) {
+        return null;
     }
 
     private String fetchData() throws IOException {
