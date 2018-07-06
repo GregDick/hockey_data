@@ -2,10 +2,14 @@ package com.example.mercury.hockey_data;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.teams)
     TextView teamsView;
+
+    @BindView(R.id.team_list)
+    RecyclerView teamRecyclerView;
+
     private Unbinder unbinder;
     private Disposable subscription;
 
@@ -75,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 );
     }
 
-    private String parseData(String rawJson) {
+    private ArrayList<Team> parseData(String rawJson) {
         return null;
     }
 
@@ -93,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
     private void displayData(String data) {
         Log.d("displayData", "data : " + data);
         teamsView.setText(data);
+        teamRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ArrayList<Team> teamArrayList = parseData(data);
+        TeamsAdapter adapter = new TeamsAdapter();
+        teamRecyclerView.setAdapter(adapter);
     }
 }
 
