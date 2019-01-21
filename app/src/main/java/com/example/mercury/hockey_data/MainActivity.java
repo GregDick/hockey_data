@@ -7,6 +7,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -65,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchAndDisplayData() {
-        Flowable<String> dataStream = Flowable.create(subscriber -> {
-            String parsedData = parseData(fetchData());
+        Flowable<ArrayList<Team>> dataStream = Flowable.create(subscriber -> {
+            ArrayList<Team> parsedData = parseData(fetchData());
             subscriber.onNext(parsedData);
 
             subscriber.onComplete();
@@ -84,6 +87,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private ArrayList<Team> parseData(String rawJson) {
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(rawJson);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ArrayList<Team> teamList = new ArrayList<Team>();
         return null;
     }
 
@@ -98,12 +108,11 @@ public class MainActivity extends AppCompatActivity {
         return response.body() != null ? response.body().string() : "";
     }
 
-    private void displayData(String data) {
+    private void displayData(ArrayList<Team> data) {
         Log.d("displayData", "data : " + data);
-        teamsView.setText(data);
+        teamsView.setText("data");
         teamRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ArrayList<Team> teamArrayList = parseData(data);
-        TeamsAdapter adapter = new TeamsAdapter();
+        TeamsAdapter adapter = new TeamsAdapter(this, data);
         teamRecyclerView.setAdapter(adapter);
     }
 }
